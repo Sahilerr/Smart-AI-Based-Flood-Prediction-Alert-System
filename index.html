@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flood Prediction System</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        /* Base styles */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --success-color: #2ecc71;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--secondary-color), #1a252f);
+            color: white;
+            padding: 25px 0;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNwYXR0ZXJuKSIvPjwvc3ZnPg==');
+            opacity: 0.6;
+        }
+        
+        h1, h2, h3 {
+            margin-bottom: 15px;
+            font-weight: 700;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            animation: fadeInDown 1s;
+        }
+        
+        h2 {
+            font-size: 1.8rem;
+            color: var(--secondary-color);
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+            display: inline-block;
+        }
+        
+        h3 {
+            font-size: 1.4rem;
+            color: var(--dark-color);
+        }
+        
+        p {
+            margin-bottom: 15px;
+            color: #555;
+        }
+        
+        /* Dashboard layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .input-section, .result-section {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .input-section:hover, .result-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+        }
+        
+        /* Tabs */
+        .prediction-tabs {
+            display: flex;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .prediction-tab {
+            padding: 12px 25px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+            color: #777;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .prediction-tab:hover {
+            color: var(--primary-color);
+        }
+        
+        .prediction-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .prediction-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Form styles */
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background-color: #f9f9f9;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            outline: none;
+            background-color: white;
+        }
+        
+        button {
+            background: linear-gradient(135deg, var(--primary-color), #2980b9);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(52, 152, 219, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button i {
+            margin-right: 8px;
+        }
+        
+        /* Image upload */
+        .image-upload-container {
+            border: 2px dashed #ddd;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 25px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            background-color: #f9f9f9;
+        }
+        
+        .image-upload-container:hover {
+            border-color: var(--primary-color);
+            background-color: #f0f7fd;
+        }
+        
+        .image-upload-container.dragover {
+            border-color: var(--primary-color);
+            background-color: #e6f2fc;
+            box-shadow: inset 0 0 15px rgba(52, 152, 219, 0.1);
+        }
+        
+        .image-upload-container i {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+        
+        .image-upload-container:hover i {
+            transform: scale(1.1);
+        }
+        
+        .small-text {
+            font-size: 13px;
+            color: #777;
+            margin-top: 5px;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 250px;
+            display: none;
+            margin: 0 auto 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 2px solid white;
+            transition: all 0.3s ease;
+        }
+        
+        .image-preview:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        
+        /* Loading indicator */
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+            background-color: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top: 4px solid var(--primary-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Prediction cards */
+        .prediction-card {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .prediction-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        }
+        
+        .prediction-value {
+            font-size: 32px;
+            font-weight: 800;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .low-risk {
+            color: var(--success-color);
+            text-shadow: 0 2px 4px rgba(46, 204, 113, 0.2);
+        }
+        
+        .medium-risk {
+            color: var(--warning-color);
+            text-shadow: 0 2px 4px rgba(243, 156, 18, 0.2);
+        }
+        
+        .high-risk {
+            color: var(--danger-color);
+            text-shadow: 0 2px 4px rgba(231, 76, 60, 0.2);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .probability-meter {
+            background-color: #e9ecef;
+            height: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .probability-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--warning-color), var(--danger-color));
+            width: 0;
+            transition: width 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .probability-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                          rgba(255,255,255,0.3) 0%, 
+                          rgba(255,255,255,0) 50%, 
+                          rgba(255,255,255,0.3) 100%);
+            animation: shine 2s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        
+        /* Image analysis */
+        .image-analysis {
+            margin-bottom: 25px;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .image-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .feature-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+        }
+        
+        .feature-item i {
+            margin-right: 10px;
+            color: var(--primary-color);
+            font-size: 18px;
+        }
+        
+        /* Details section */
+        .details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+        
+        .detail-item:hover {
+            background-color: #f1f5f9;
+            padding-left: 10px;
+        }
+        
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Map container */
+        .map-container {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        .map-placeholder {
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e9ecef;
+            color: #6c757d;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .map-placeholder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, 
+                          rgba(255,255,255,0.1) 25%, 
+                          transparent 25%, 
+                          transparent 50%, 
+                          rgba(255,255,255,0.1) 50%, 
+                          rgba(255,255,255,0.1) 75%, 
+                          transparent 75%, 
+                          transparent);
+            background-size: 20px 20px;
+            animation: move 2s linear infinite;
+        }
+        
+        @keyframes move {
+            0% { background-position: 0 0; }
+            100% { background-position: 20px 20px; }
+        }
+        
+        /* Historical data */
+        .historical-data {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+        
+        .historical-data:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+        }
+        
+        .chart-container {
+            height: 350px;
+            position: relative;
+            margin-top: 20px;
+        }
+        
+        /* Footer */
+        footer {
+            background: linear-gradient(135deg, var(--secondary-color), #1a252f);
+            color: white;
+            text-align: center;
+            padding: 30px 0;
+            position: relative;
+        }
+        
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNwYXR0ZXJuKSIvPjwvc3ZnPg==');
+            opacity: 0.6;
+        }
+        
+        footer p {
+            color: rgba(255,255,255,0.8);
+            margin: 0;
+            position: relative;
+        }
+        
+        /* Weather widget */
+        .weather-widget {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .weather-widget:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+        }
+        
+        .weather-result {
+            margin-top: 20px;
+            background-color: rgba(52, 152, 219, 0.05);
+            padding: 20px;
+            border-radius: 8px;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        .weather-icon {
+            width: 70px;
+            height: 70px;
+            transition: all 0.3s ease;
+        }
+        
+        .weather-icon:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        /* Floating animation */
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        /* Water wave effect */
+        .water-wave {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .water-wave::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            right: -50%;
+            bottom: -50%;
+            background: linear-gradient(to bottom, 
+                          rgba(255,255,255,0.1) 0%, 
+                          rgba(255,255,255,0.3) 50%, 
+                          rgba(255,255,255,0.1) 100%);
+            transform: rotate(0deg);
+            animation: wave 8s linear infinite;
+            opacity: 0.6;
+        }
+        
+        @keyframes wave {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .prediction-tabs {
+                justify-content: space-between;
+            }
+            
+            .prediction-tab {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+            
+            .image-features {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark-color);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            font-weight: normal;
+        }
+        
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--dark-color) transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Particle background for header */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            animation: floatParticle linear infinite;
+        }
+        
+        @keyframes floatParticle {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-1000px) translateX(100px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="relative overflow-hidden">
+        <div class="particles" id="particles"></div>
+        <div class="container relative z-10">
+            <h1 class="animate__animated animate__fadeInDown">Flood Prediction System</h1>
+            <p class="animate__animated animate__fadeIn animate__delay-1s">Predict flood risks based on environmental factors or satellite/ground images</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Weather Widget -->
+        <div class="weather-widget animate__animated animate__fadeIn animate__delay-1s">
+            <h2>Current Weather Conditions</h2>
+            <div class="mb-6">
+                <input type="text" id="cityInput" placeholder="Enter city name" 
+                    class="border-2 border-gray-200 p-3 w-full mb-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-300">
+                <button onclick="getWeather()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg hover:shadow-lg transition duration-300 flex items-center">
+                    <i class="fas fa-cloud-sun mr-2"></i> Get Weather
+                </button>
+            </div>
+            <div id="weatherResult" class="weather-result">
+                <!-- Weather details will be inserted here -->
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <div class="input-section animate__animated animate__fadeInLeft">
+                <div class="prediction-tabs">
+                    <div class="prediction-tab active" data-tab="parameters">
+                        <i class="fas fa-sliders-h mr-2"></i>Parameters
+                    </div>
+                    <div class="prediction-tab" data-tab="image">
+                        <i class="fas fa-image mr-2"></i>Image Analysis
+                    </div>
+                </div>
+
+                <div id="parametersTab" class="tab-content active">
+                    <h2>Input Parameters</h2>
+                    <form id="predictionForm">
+                        <div class="form-group">
+                            <label for="rainfall">Rainfall (mm) <span class="tooltip"><i class="fas fa-info-circle text-blue-500"></i>
+                                <span class="tooltiptext">Total precipitation in millimeters over the past 24 hours</span>
+                            </span></label>
+                            <input type="number" id="rainfall" step="0.1" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="riverLevel">River Level (m) <span class="tooltip"><i class="fas fa-info-circle text-blue-500"></i>
+                                <span class="tooltiptext">Current river height in meters compared to normal levels</span>
+                            </span></label>
+                            <input type="number" id="riverLevel" step="0.1" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="soilMoisture">Soil Moisture (%) <span class="tooltip"><i class="fas fa-info-circle text-blue-500"></i>
+                                <span class="tooltiptext">Percentage of water content in the soil</span>
+                            </span></label>
+                            <input type="number" id="soilMoisture" min="0" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="temperature">Temperature (°C) <span class="tooltip"><i class="fas fa-info-circle text-blue-500"></i>
+                                <span class="tooltiptext">Current air temperature in Celsius</span>
+                            </span></label>
+                            <input type="number" id="temperature" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="humidity">Humidity (%) <span class="tooltip"><i class="fas fa-info-circle text-blue-500"></i>
+                                <span class="tooltiptext">Relative humidity percentage in the air</span>
+                            </span></label>
+                            <input type="number" id="humidity" min="0" max="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="location">Location <span class="tooltip"><i class="fas fa-info-circle text-blue-500"></i>
+                                <span class="tooltiptext">Select the geographical region for analysis</span>
+                            </span></label>
+                            <select id="location" required>
+                                <option value="">Select a location</option>
+                                <option value="north">North Region</option>
+                                <option value="south">South Region</option>
+                                <option value="east">East Region</option>
+                                <option value="west">West Region</option>
+                                <option value="central">Central Region</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="w-full">
+                            <i class="fas fa-bolt mr-2"></i> Predict Flood Risk
+                        </button>
+                    </form>
+                </div>
+
+                <div id="imageTab" class="tab-content">
+                    <h2>Image Analysis</h2>
+                    <form id="imagePredictionForm">
+                        <div class="image-upload-container" id="dropZone">
+                            <i class="fas fa-cloud-upload-alt floating"></i>
+                            <p>Drag & drop a satellite or ground image here</p>
+                            <p class="small-text">(Supports JPG, PNG, JPEG. Max 5MB)</p>
+                            <input type="file" id="floodImage" accept="image/*" required class="hidden">
+                            <button type="button" onclick="document.getElementById('floodImage').click()" class="mt-4 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded transition duration-300">
+                                <i class="fas fa-folder-open mr-2"></i> Browse Files
+                            </button>
+                        </div>
+                        <img id="imagePreview" class="image-preview" alt="Image preview">
+                        
+                        <div class="form-group">
+                            <label for="imageLocation">Location (for image analysis)</label>
+                            <select id="imageLocation" required>
+                                <option value="">Select a location</option>
+                                <option value="north">North Region</option>
+                                <option value="south">South Region</option>
+                                <option value="east">East Region</option>
+                                <option value="west">West Region</option>
+                                <option value="central">Central Region</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="w-full">
+                            <i class="fas fa-search mr-2"></i> Analyze Image for Flood Risk
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="result-section animate__animated animate__fadeInRight">
+                <h2>Prediction Results</h2>
+                <div class="loading" id="loadingIndicator">
+                    <div class="spinner"></div>
+                    <p>Analyzing data and making prediction...</p>
+                </div>
+                <div id="results" style="display: none;">
+                    <div class="prediction-card water-wave">
+                        <h3>Flood Risk Prediction</h3>
+                        <div class="prediction-value" id="riskLevel">-</div>
+                        <div class="probability-meter">
+                            <div class="probability-bar" id="probabilityBar"></div>
+                        </div>
+                        <p>Probability: <span id="probabilityValue">0</span>%</p>
+                    </div>
+                    
+                    <div id="imageAnalysis" class="image-analysis" style="display: none;">
+                        <h3>Image Analysis Details</h3>
+                        <div id="imageFeatures" class="image-features">
+                            <!-- Features will be added dynamically -->
+                        </div>
+                    </div>
+                    
+                    <div class="details">
+                        <h3>Details</h3>
+                        <div class="detail-item">
+                            <span>Method</span>
+                            <span id="detailMethod">Parameters</span>
+                        </div>
+                        <div id="parameterDetails">
+                            <div class="detail-item">
+                                <span>Rainfall</span>
+                                <span id="detailRainfall">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>River Level</span>
+                                <span id="detailRiverLevel">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Soil Moisture</span>
+                                <span id="detailSoilMoisture">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Temperature</span>
+                                <span id="detailTemperature">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Humidity</span>
+                                <span id="detailHumidity">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Location</span>
+                                <span id="detailLocation">-</span>
+                            </div>
+                        </div>
+                        <div id="imageDetails" style="display: none;">
+                            <div class="detail-item">
+                                <span>Image Features</span>
+                                <span id="detailImageFeatures">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span>Analysis Confidence</span>
+                                <span id="detailConfidence">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="map-container">
+                        <div class="map-placeholder" id="mapPlaceholder">
+                            <i class="fas fa-map-marked-alt text-4xl mb-2"></i>
+                            <p>Risk area visualization will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="historical-data animate__animated animate__fadeInUp animate__delay-1s">
+            <h2>Historical Flood Data</h2>
+            <div class="chart-container" id="chartContainer">
+                <canvas id="historicalChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <footer class="animate__animated animate__fadeIn animate__delay-1s">
+        <div class="container relative z-10">
+            <p>Flood Prediction System &copy; 2023 | Powered by Machine Learning</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Create particle background
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // Random size between 2px and 6px
+                const size = Math.random() * 4 + 2;
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                
+                // Random position
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.bottom = `-${size}px`;
+                
+                // Random animation duration between 10s and 20s
+                const duration = Math.random() * 10 + 10;
+                particle.style.animationDuration = `${duration}s`;
+                
+                // Random delay
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // Load the model (in a real app, this would be loaded from the server)
+        // For this demo, we'll simulate predictions
+        let modelLoaded = false;
+        
+        // Simulate model loading
+        setTimeout(() => {
+            modelLoaded = true;
+            console.log("Model loaded successfully");
+        }, 1500);
+
+        // Tab switching functionality
+        document.querySelectorAll('.prediction-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Remove active class from all tabs and content
+                document.querySelectorAll('.prediction-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab') + 'Tab';
+                document.getElementById(tabId).classList.add('active');
+                
+                // Reset results display when switching tabs
+                document.getElementById('results').style.display = 'none';
+                document.getElementById('loadingIndicator').style.display = 'none';
+            });
+        });
+
+        // Image preview functionality
+        document.getElementById('floodImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const imagePreview = document.getElementById('imagePreview');
+                    imagePreview.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Drag and drop functionality
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('floodImage');
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                const event = new Event('change');
+                fileInput.dispatchEvent(event);
+            }
+        });
+
+        // Parameter-based prediction form
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!modelLoaded) {
+                alert("Model is still loading. Please wait a moment.");
+                return;
+            }
+            
+            // Show loading indicator
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('imageAnalysis').style.display = 'none';
+            document.getElementById('parameterDetails').style.display = 'block';
+            document.getElementById('imageDetails').style.display = 'none';
+            document.getElementById('detailMethod').textContent = 'Parameters';
+            
+            // Get form values
+            const rainfall = parseFloat(document.getElementById('rainfall').value);
+            const riverLevel = parseFloat(document.getElementById('riverLevel').value);
+            const soilMoisture = parseFloat(document.getElementById('soilMoisture').value);
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const humidity = parseFloat(document.getElementById('humidity').value);
+            const location = document.getElementById('location').value;
+            
+            // Simulate API call/processing delay
+            setTimeout(() => {
+                // Hide loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                // Show results with animation
+                const resultsElement = document.getElementById('results');
+                resultsElement.style.display = 'block';
+                resultsElement.classList.add('animate__animated', 'animate__fadeIn');
+                
+                // In a real app, you would send this data to your backend
+                // which would use the model to make a prediction
+                // For this demo, we'll simulate a prediction based on inputs
+                const prediction = simulatePrediction(rainfall, riverLevel, soilMoisture, temperature, humidity, location);
+                
+                // Update UI with results
+                updateResults(prediction, {
+                    rainfall, riverLevel, soilMoisture, temperature, humidity, location
+                });
+                
+                // Update historical chart
+                updateHistoricalChart();
+                
+            }, 2000);
+        });
+        
+        // Image-based prediction form
+        document.getElementById('imagePredictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!modelLoaded) {
+                alert("Model is still loading. Please wait a moment.");
+                return;
+            }
+            
+            const imageFile = document.getElementById('floodImage').files[0];
+            if (!imageFile) {
+                alert("Please upload an image first.");
+                return;
+            }
+            
+            const location = document.getElementById('imageLocation').value;
+            if (!location) {
+                alert("Please select a location for the image analysis.");
+                return;
+            }
+            
+            // Show loading indicator
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('imageAnalysis').style.display = 'block';
+            document.getElementById('parameterDetails').style.display = 'none';
+            document.getElementById('imageDetails').style.display = 'block';
+            document.getElementById('detailMethod').textContent = 'Image Analysis';
+            
+            // Simulate API call/processing delay
+            setTimeout(() => {
+                // Hide loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                // Show results with animation
+                const resultsElement = document.getElementById('results');
+                resultsElement.style.display = 'block';
+                resultsElement.classList.add('animate__animated', 'animate__fadeIn');
+                
+                // In a real app, you would send the image to your backend
+                // which would use a computer vision model to analyze it
+                // For this demo, we'll simulate an analysis
+                const prediction = simulateImagePrediction(imageFile, location);
+                
+                // Update UI with results
+                updateImageResults(prediction, location);
+                
+                // Update historical chart
+                updateHistoricalChart();
+                
+            }, 3000); // Longer delay to simulate image processing
+        });
+        
+        function simulatePrediction(rainfall, riverLevel, soilMoisture, temperature, humidity, location) {
+            // This is a simplified simulation - in reality your model would make the prediction
+            // We'll create a risk score based on the inputs
+            
+            // Base weights for each factor (adjust these based on your model's importance)
+            const weights = {
+                rainfall: 0.4,
+                riverLevel: 0.3,
+                soilMoisture: 0.2,
+                temperature: 0.05,
+                humidity: 0.05
+            };
+            
+            // Location modifiers
+            const locationModifiers = {
+                'north': 1.2,
+                'south': 1.0,
+                'east': 1.1,
+                'west': 0.9,
+                'central': 1.0
+            };
+            
+            // Normalize inputs (very simplified)
+            const normalizedRainfall = Math.min(rainfall / 100, 1);
+            const normalizedRiverLevel = Math.min(riverLevel / 10, 1);
+            const normalizedSoilMoisture = soilMoisture / 100;
+            const normalizedTemperature = Math.min(Math.max((temperature - 10) / 30, 0), 1);
+            const normalizedHumidity = humidity / 100;
+            
+            // Calculate risk score (0-1)
+            let riskScore = (
+                normalizedRainfall * weights.rainfall +
+                normalizedRiverLevel * weights.riverLevel +
+                normalizedSoilMoisture * weights.soilMoisture +
+                normalizedTemperature * weights.temperature +
+                normalizedHumidity * weights.humidity
+            ) * locationModifiers[location];
+            
+            // Cap at 1
+            riskScore = Math.min(riskScore, 1);
+            
+            // Determine risk level
+            let riskLevel;
+            if (riskScore < 0.3) {
+                riskLevel = { text: "Low Risk", class: "low-risk" };
+            } else if (riskScore < 0.7) {
+                riskLevel = { text: "Medium Risk", class: "medium-risk" };
+            } else {
+                riskLevel = { text: "High Risk", class: "high-risk" };
+            }
+            
+            return {
+                probability: Math.round(riskScore * 100),
+                riskLevel: riskLevel
+            };
+        }
+        
+        function simulateImagePrediction(imageFile, location) {
+            // Simulate image analysis results
+            // In a real app, this would come from a computer vision model
+            
+            // Location modifiers
+            const locationModifiers = {
+                'north': 1.2,
+                'south': 1.0,
+                'east': 1.1,
+                'west': 0.9,
+                'central': 1.0
+            };
+            
+            // Simulate detected features (random for demo)
+            const features = {
+                waterArea: Math.random() * 30 + 10, // % of image with water
+                vegetation: Math.random() * 70 + 10, // % of image with vegetation
+                urbanArea: Math.random() * 50, // % of image with urban features
+                cloudCover: Math.random() * 80, // % of image with clouds
+                terrainType: ['flat', 'hilly', 'mountainous'][Math.floor(Math.random() * 3)]
+            };
+            
+            // Calculate risk score based on simulated features
+            let riskScore = (
+                (features.waterArea / 30) * 0.5 +
+                ((100 - features.vegetation) / 100) * 0.2 +
+                (features.urbanArea / 50) * 0.1 +
+                (features.cloudCover / 80) * 0.2
+            ) * locationModifiers[location];
+            
+            // Cap at 1
+            riskScore = Math.min(riskScore, 1);
+            
+            // Determine risk level
+            let riskLevel;
+            if (riskScore < 0.3) {
+                riskLevel = { text: "Low Risk", class: "low-risk" };
+            } else if (riskScore < 0.7) {
+                riskLevel = { text: "Medium Risk", class: "medium-risk" };
+            } else {
+                riskLevel = { text: "High Risk", class: "high-risk" };
+            }
+            
+            return {
+                probability: Math.round(riskScore * 100),
+                riskLevel: riskLevel,
+                features: features,
+                confidence: Math.round(Math.random() * 30 + 70) // % confidence in analysis
+            };
+        }
+        
+        function updateResults(prediction, inputs) {
+            // Update risk level
+            const riskElement = document.getElementById('riskLevel');
+            riskElement.textContent = prediction.riskLevel.text;
+            riskElement.className = `prediction-value ${prediction.riskLevel.class}`;
+            
+            // Update probability with animation
+            const probabilityValue = document.getElementById('probabilityValue');
+            const probabilityBar = document.getElementById('probabilityBar');
+            
+            // Animate the probability value
+            let start = 0;
+            const end = prediction.probability;
+            const duration = 1500;
+            const startTime = performance.now();
+            
+            function animateProbability(timestamp) {
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                const currentValue = Math.floor(progress * end);
+                
+                probabilityValue.textContent = currentValue;
+                probabilityBar.style.width = `${currentValue}%`;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animateProbability);
+                }
+            }
+            
+            requestAnimationFrame(animateProbability);
+            
+            // Update details
+            document.getElementById('detailRainfall').textContent = `${inputs.rainfall} mm`;
+            document.getElementById('detailRiverLevel').textContent = `${inputs.riverLevel} m`;
+            document.getElementById('detailSoilMoisture').textContent = `${inputs.soilMoisture}%`;
+            document.getElementById('detailTemperature').textContent = `${inputs.temperature}°C`;
+            document.getElementById('detailHumidity').textContent = `${inputs.humidity}%`;
+            document.getElementById('detailLocation').textContent = document.getElementById('location').options[document.getElementById('location').selectedIndex].text;
+            
+            // Update map placeholder with risk level
+            const mapPlaceholder = document.getElementById('mapPlaceholder');
+            mapPlaceholder.innerHTML = `
+                <i class="fas fa-map-marked-alt text-4xl mb-2"></i>
+                <p>Risk area: <strong>${prediction.riskLevel.text}</strong></p>
+                <p class="text-sm mt-2">${getLocationDescription(inputs.location)}</p>
+            `;
+            
+            // Change color based on risk
+            if (prediction.riskLevel.class === 'low-risk') {
+                mapPlaceholder.style.backgroundColor = '#d5f5e3';
+                mapPlaceholder.style.color = '#28b463';
+            } else if (prediction.riskLevel.class === 'medium-risk') {
+                mapPlaceholder.style.backgroundColor = '#fcf3cf';
+                mapPlaceholder.style.color = '#d68910';
+            } else {
+                mapPlaceholder.style.backgroundColor = '#fadbd8';
+                mapPlaceholder.style.color = '#e74c3c';
+            }
+        }
+        
+        function getLocationDescription(location) {
+            const descriptions = {
+                'north': 'Northern region with several rivers and moderate elevation',
+                'south': 'Southern coastal area with flat terrain',
+                'east': 'Eastern region with heavy rainfall and dense vegetation',
+                'west': 'Western arid region with occasional flash floods',
+                'central': 'Central plains with major river systems'
+            };
+            return descriptions[location] || 'Selected region for analysis';
+        }
+        
+        function updateImageResults(prediction, location) {
+            // Update risk level
+            const riskElement = document.getElementById('riskLevel');
+            riskElement.textContent = prediction.riskLevel.text;
+            riskElement.className = `prediction-value ${prediction.riskLevel.class}`;
+            
+            // Update probability with animation
+            const probabilityValue = document.getElementById('probabilityValue');
+            const probabilityBar = document.getElementById('probabilityBar');
+            
+            // Animate the probability value
+            let start = 0;
+            const end = prediction.probability;
+            const duration = 1500;
+            const startTime = performance.now();
+            
+            function animateProbability(timestamp) {
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+                const currentValue = Math.floor(progress * end);
+                
+                probabilityValue.textContent = currentValue;
+                probabilityBar.style.width = `${currentValue}%`;
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animateProbability);
+                }
+            }
+            
+            requestAnimationFrame(animateProbability);
+            
+            // Update image features
+            const featuresContainer = document.getElementById('imageFeatures');
+            featuresContainer.innerHTML = '';
+            
+            // Add detected features
+            const featureItems = [
+                { name: 'Water Area', value: `${prediction.features.waterArea.toFixed(1)}%`, icon: 'tint' },
+                { name: 'Vegetation Cover', value: `${prediction.features.vegetation.toFixed(1)}%`, icon: 'leaf' },
+                { name: 'Urban Area', value: `${prediction.features.urbanArea.toFixed(1)}%`, icon: 'city' },
+                { name: 'Cloud Cover', value: `${prediction.features.cloudCover.toFixed(1)}%`, icon: 'cloud' },
+                { name: 'Terrain Type', value: prediction.features.terrainType, icon: 'mountain' },
+                { name: 'Image Quality', value: 'Good', icon: 'camera' }
+            ];
+            
+            featureItems.forEach(item => {
+                const featureElement = document.createElement('div');
+                featureElement.className = 'feature-item animate__animated animate__fadeIn';
+                featureElement.style.animationDelay = `${Math.random() * 0.5}s`;
+                featureElement.innerHTML = `
+                    <i class="fas fa-${item.icon}"></i>
+                    <span>${item.name}: <strong>${item.value}</strong></span>
+                `;
+                featuresContainer.appendChild(featureElement);
+            });
+            
+            // Update details
+            document.getElementById('detailLocation').textContent = document.getElementById('imageLocation').options[document.getElementById('imageLocation').selectedIndex].text;
+            document.getElementById('detailImageFeatures').textContent = `${Object.keys(prediction.features).length} features detected`;
+            document.getElementById('detailConfidence').textContent = `${prediction.confidence}%`;
+            
+            // Update map placeholder with risk level
+            const mapPlaceholder = document.getElementById('mapPlaceholder');
+            mapPlaceholder.innerHTML = `
+                <i class="fas fa-map-marked-alt text-4xl mb-2"></i>
+                <p>Risk area: <strong>${prediction.riskLevel.text}</strong></p>
+                <p class="text-sm mt-2">${getLocationDescription(location)}</p>
+            `;
+            
+            // Change color based on risk
+            if (prediction.riskLevel.class === 'low-risk') {
+                mapPlaceholder.style.backgroundColor = '#d5f5e3';
+                mapPlaceholder.style.color = '#28b463';
+            } else if (prediction.riskLevel.class === 'medium-risk') {
+                mapPlaceholder.style.backgroundColor = '#fcf3cf';
+                mapPlaceholder.style.color = '#d68910';
+            } else {
+                mapPlaceholder.style.backgroundColor = '#fadbd8';
+                mapPlaceholder.style.color = '#e74c3c';
+            }
+        }
+        
+        // Initialize historical chart
+        let historicalChart;
+        
+        function updateHistoricalChart() {
+            const ctx = document.getElementById('historicalChart').getContext('2d');
+            
+            // Sample data - in a real app this would come from your backend
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const floodData = months.map(() => Math.random() * 100);
+            const rainfallData = months.map(() => Math.random() * 200);
+            
+            if (historicalChart) {
+                historicalChart.destroy();
+            }
+            
+            historicalChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Flood Risk (%)',
+                            data: floodData,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            yAxisID: 'y',
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#e74c3c',
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: 'Rainfall (mm)',
+                            data: rainfallData,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            yAxisID: 'y1',
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#3498db',
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            pointBorderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 1500,
+                        easing: 'easeOutQuart'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                },
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleFont: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 14
+                            },
+                            padding: 12,
+                            usePointStyle: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Flood Risk (%)',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Rainfall (mm)',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            min: 0,
+                            max: 200,
+                            grid: {
+                                drawOnChartArea: false,
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Weather App Functionality
+        async function getWeather() {
+            const city = document.getElementById('cityInput').value;
+            if (!city) {
+                document.getElementById('weatherResult').innerHTML = `
+                    <p class="text-red-500">Please enter a city name</p>`;
+                return;
+            }
+            
+            const apiKey = 'e6328bd2cfda5b1d1d54dca11b5d3f20'; // Replace with your OpenWeatherMap API key
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+
+            try {
+                document.getElementById('weatherResult').innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="spinner"></div>
+                        <p>Loading weather data...</p>
+                    </div>`;
+                
+                const response = await fetch(url);
+                const data = await response.json();
+                if (response.ok) {
+                    const weatherIcon = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+                    document.getElementById('weatherResult').innerHTML = `
+                        <div class="flex items-center justify-center mb-4 animate__animated animate__fadeIn">
+                            <img src="${weatherIcon}" alt="${data.weather[0].description}" class="weather-icon">
+                            <span class="text-2xl font-semibold ml-2">${data.main.temp}°C</span>
+                        </div>
+                        <div class="space-y-2 animate__animated animate__fadeIn animate__delay-1s">
+                            <p><strong>City:</strong> ${data.name}, ${data.sys.country}</p>
+                            <p><strong>Weather:</strong> ${data.weather[0].description}</p>
+                            <p><strong>Humidity:</strong> ${data.main.humidity}%</p>
+                            <p><strong>Wind Speed:</strong> ${data.wind.speed} m/s</p>
+                            <p><strong>Wind Direction:</strong> ${data.wind.deg}°</p>
+                            <p><strong>Pressure:</strong> ${data.main.pressure} hPa</p>
+                            <p><strong>Cloud Coverage:</strong> ${data.clouds.all}%</p>
+                            <p><strong>Precipitation:</strong> ${data.rain ? (data.rain['1h'] || '0') : '0'} mm</p>
+                        </div>`;
+                    
+                    // Auto-fill some flood prediction fields if available
+                    if (data.rain) {
+                        document.getElementById('rainfall').value = data.rain['1h'] || '0';
+                    }
+                    document.getElementById('temperature').value = data.main.temp;
+                    document.getElementById('humidity').value = data.main.humidity;
+                } else {
+                    document.getElementById('weatherResult').innerHTML = `
+                        <p class="text-red-500 animate__animated animate__fadeIn">${data.message}</p>`;
+                }
+            } catch (error) {
+                console.error("Error fetching weather data:", error);
+                document.getElementById('weatherResult').innerHTML = `
+                    <p class="text-red-500 animate__animated animate__fadeIn">Error fetching weather data. Please try again.</p>`;
+            }
+        }
+        
+        // Initialize chart and particles on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateHistoricalChart();
+            createParticles();
+            
+            // Add initial animations
+            document.querySelectorAll('.animate__animated').forEach(el => {
+                el.style.opacity = '0';
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                }, 100);
+            });
+        });
+    </script>
+</body>
+</html>
